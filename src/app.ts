@@ -17,15 +17,21 @@ server.on('connection', (socket: any) => {
 
         if (message.type === 'set-key') {
             client.key = message.data;
+
+            const clientsForKey: Client[] = clients.filter((x) => x.key === client.key && x.id !== client.id);
+
+            for (const x of clientsForKey) {
+                x.socket.send(JSON.stringify(new Message(client.id, 'server', x.id, 'client-opened')));
+            }
         } else if (message.type === 'list-clients') {
             const clientsForKey: Client[] = clients.filter((x) => x.key === client.key);
 
-            client.socket.send(JSON.stringify(new Message(JSON.stringify(clients.map((x) => x.id)), 'server', client.id, null)));
+            client.socket.send(JSON.stringify(new Message(JSON.stringify(clients.map((x) => x.id)), 'server', client.id, 'list-clients')));
         } else if (message.type === 'broadcast') {
             const clientsForKey: Client[] = clients.filter((x) => x.key === client.key && x.id !== client.id);
 
             for (const x of clientsForKey) {
-                client.socket.send(JSON.stringify(new Message(message.data, message.from, x.id, null)));
+                x.socket.send(JSON.stringify(new Message(message.data, message.from, x.id, null)));
             }
         } else if (message.type === null) {
             const toClient: Client = clients.find((x) => x.id === message.to);
@@ -39,6 +45,12 @@ server.on('connection', (socket: any) => {
 
         if (index > -1) {
             clients.splice(index, 1);
+        }
+
+        const clientsForKey: Client[] = clients.filter((x) => x.key === client.key && x.id !== client.id);
+
+        for (const x of clientsForKey) {
+            x.socket.send(JSON.stringify(new Message(client.id, 'server', x.id, 'client-closed')));
         }
     });
 
