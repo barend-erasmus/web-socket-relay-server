@@ -23,20 +23,28 @@ server.on('connection', (socket: any) => {
             for (const x of clientsForKey) {
                 x.socket.send(JSON.stringify(new Message(client.id, 'server', x.id, 'client-opened')));
             }
+
+            console.log(`SET-KEY: ${message.data}`);
         } else if (message.type === 'list-clients') {
             const clientsForKey: Client[] = clients.filter((x) => x.key === client.key);
 
             client.socket.send(JSON.stringify(new Message(JSON.stringify(clients.map((x) => x.id)), 'server', client.id, 'list-clients')));
+
+            console.log(`LIST-CLIENTS: ${client.key}`);
         } else if (message.type === 'broadcast') {
             const clientsForKey: Client[] = clients.filter((x) => x.key === client.key && x.id !== client.id);
 
             for (const x of clientsForKey) {
                 x.socket.send(JSON.stringify(new Message(message.data, message.from, x.id, null)));
             }
+
+            console.log(`BROADCAST: ${client.key}`);
         } else if (message.type === null) {
             const toClient: Client = clients.find((x) => x.id === message.to);
 
             toClient.socket.send(JSON.stringify(new Message(message.data, message.from, toClient.id, null)));
+
+            console.log(`MESSAGE: ${message.to}`);
         }
     });
 
