@@ -8,7 +8,7 @@ const server: WebSocket.Server = new WebSocket.Server({ port: 8891 });
 const clients: Client[] = [];
 
 server.on('connection', (socket: any) => {
-    const client: Client = new Client(UUID.v4(), null, socket);
+    const client: Client = new Client(UUID.v4(), null, {}, socket);
 
     clients.push(client);
 
@@ -23,16 +23,27 @@ server.on('connection', (socket: any) => {
             const clientsForKey: Client[] = clients.filter((x) => x.key === client.key && x.id !== client.id);
 
             for (const x of clientsForKey) {
-                x.socket.send(JSON.stringify(new Message('client-opened', null, client.id, 'server', x.id)));
+                x.socket.send(JSON.stringify(new Message('client-opened', null, {id: client.id, metadata: client.metadata}, 'server', x.id)));
             }
 
             client.socket.send(JSON.stringify(new Message(message.command, message.correlationId, null, 'server', client.id)));
 
             console.log(`SET-KEY: ${message.data}`);
+        } else if (message.command === 'set-metadata' && message.to === 'server') {
+            client.metadata[message.data.key] = message.data.value;
+
+            client.socket.send(JSON.stringify(new Message(message.command, message.correlationId, null, 'server', client.id)));
+
+            console.log(`SET-METADATA: ${message.data}`);
         } else if (message.command === 'list-clients' && message.to === 'server') {
             const clientsForKey: Client[] = clients.filter((x) => x.key === client.key);
 
-            client.socket.send(JSON.stringify(new Message(message.command, message.correlationId, clients.map((x) => x.id), 'server', client.id)));
+            client.socket.send(JSON.stringify(new Message(message.command, message.correlationId, clients.map((x: Client) => {
+                return {
+                    id: x.id,
+                    metadat: x.metadata,
+                };
+            }), 'server', client.id)));
 
             console.log(`LIST-CLIENTS: ${client.key}`);
         } else if (message.to !== 'server') {
@@ -58,7 +69,7 @@ server.on('connection', (socket: any) => {
         const clientsForKey: Client[] = clients.filter((x) => x.key === client.key && x.id !== client.id);
 
         for (const x of clientsForKey) {
-            x.socket.send(JSON.stringify(JSON.stringify(new Message('client-closed', null, client.id, 'server', x.id))));
+            x.socket.send(JSON.stringify(JSON.stringify(new Message('client-closed', null, {id: client.id, metadata: client.metadata}, 'server', x.id))));
         }
     });
 
