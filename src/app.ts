@@ -1,9 +1,9 @@
 import * as WebSocket from 'ws';
 import { CommandBuilder } from './builders/command-builder';
-import { Client } from './models/client';
 import { Command } from './commands/command';
 import { PublishCommand } from './commands/publish';
 import { SubscribeCommand } from './commands/subscribe';
+import { Client } from './models/client';
 
 const server: WebSocket.Server = new WebSocket.Server({ port: 8891 });
 
@@ -17,7 +17,7 @@ server.on('connection', (socket: WebSocket) => {
     clients.push(client);
 
     client.socket.on('message', (message: string) => {
-        const command: Command = commandBuilder.build(JSON.stringify(message));
+        const command: Command = commandBuilder.build(JSON.parse(message));
 
         if (command instanceof PublishCommand) {
             const publishCommand: PublishCommand = command as PublishCommand;
