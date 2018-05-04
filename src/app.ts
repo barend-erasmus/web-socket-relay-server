@@ -1,75 +1,47 @@
-import * as UUID from 'uuid';
 import * as WebSocket from 'ws';
+import { CommandBuilder } from './builders/command-builder';
 import { Client } from './models/client';
-import { Message } from './models/message';
+import { Command } from './commands/command';
+import { PublishCommand } from './commands/publish';
+import { SubscribeCommand } from './commands/subscribe';
 
 const server: WebSocket.Server = new WebSocket.Server({ port: 8891 });
 
 const clients: Client[] = [];
 
-server.on('connection', (socket: any) => {
-    const client: Client = new Client(UUID.v4(), null, {}, socket);
+const commandBuilder: CommandBuilder = new CommandBuilder();
+
+server.on('connection', (socket: WebSocket) => {
+    const client: Client = new Client(socket, []);
 
     clients.push(client);
 
-    client.socket.on('message', (rawMessage: string) => {
-        console.log(rawMessage);
+    client.socket.on('message', (message: string) => {
+        const command: Command = commandBuilder.build(JSON.stringify(message));
 
-        const message: Message = JSON.parse(rawMessage);
+        if (command instanceof PublishCommand) {
+            const publishCommand: PublishCommand = command as PublishCommand;
 
-        if (message.command === 'set-key' && message.to === 'server') {
-            client.key = message.data;
-
-            const clientsForKey: Client[] = clients.filter((x) => x.key === client.key && x.id !== client.id);
-
-            for (const x of clientsForKey) {
-                x.socket.send(JSON.stringify(new Message('client-opened', null, {id: client.id, metadata: client.metadata}, 'server', x.id)));
+            for (const c of clients) {
+                if (c.subscribedChannels.indexOf(publishCommand.channel) > -1) {
+                    c.socket.send(JSON.stringify(publishCommand));
+                }
             }
-
-            client.socket.send(JSON.stringify(new Message(message.command, message.correlationId, null, 'server', client.id)));
-
-            console.log(`SET-KEY: ${message.data}`);
-        } else if (message.command === 'set-metadata' && message.to === 'server') {
-            client.metadata[message.data.key] = message.data.value;
-
-            client.socket.send(JSON.stringify(new Message(message.command, message.correlationId, null, 'server', client.id)));
-
-            console.log(`SET-METADATA: ${message.data}`);
-        } else if (message.command === 'list-clients' && message.to === 'server') {
-            const clientsForKey: Client[] = clients.filter((x) => x.key === client.key);
-
-            client.socket.send(JSON.stringify(new Message(message.command, message.correlationId, clients.map((x: Client) => {
-                return {
-                    id: x.id,
-                    metadat: x.metadata,
-                };
-            }), 'server', client.id)));
-
-            console.log(`LIST-CLIENTS: ${client.key}`);
-        } else if (message.to !== 'server') {
-            const toClient: Client = clients.find((x) => x.id === message.to);
-
-            if (!toClient) {
-                return;
-            }
-
-            toClient.socket.send(JSON.stringify(new Message(message.command, message.correlationId, message.data, client.id, message.to)));
-
-            console.log(`MESSAGE: ${message.to}`);
         }
+
+        if (command instanceof SubscribeCommand) {
+            const subscribeCommand: SubscribeCommand = command as SubscribeCommand;
+
+            client.subscribe(subscribeCommand.channel);
+        }
+
     });
 
-    client.socket.on('close', function close() {
+    client.socket.on('close', () => {
         const index: number = clients.indexOf(client);
 
         if (index > -1) {
             clients.splice(index, 1);
-        }
-
-        const clientsForKey: Client[] = clients.filter((x) => x.key === client.key && x.id !== client.id);
-
-        for (const x of clientsForKey) {
-            x.socket.send(JSON.stringify(JSON.stringify(new Message('client-closed', null, {id: client.id, metadata: client.metadata}, 'server', x.id))));
         }
     });
 
