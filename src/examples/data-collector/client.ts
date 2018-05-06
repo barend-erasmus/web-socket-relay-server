@@ -1,6 +1,6 @@
 import { PublishCommand } from '../../commands/publish';
 
-const host: string = 'ws://159.65.63.90:8891';
+const host: string = 'ws://events.openservices.co.za';
 
 const socket: WebSocket = new (window as any).WebSocket(host);
 

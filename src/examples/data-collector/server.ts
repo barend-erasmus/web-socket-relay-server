@@ -3,7 +3,7 @@ import { Command } from '../../commands/command';
 import { PublishCommand } from '../../commands/publish';
 import { SubscribeCommand } from '../../commands/subscribe';
 
-const host: string = 'ws://159.65.63.90:8891';
+const host: string = 'ws://events.openservices.co.za';
 
 const socket: WebSocket = new (window as any).WebSocket(host);
 
