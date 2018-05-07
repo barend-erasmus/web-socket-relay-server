@@ -23,16 +23,23 @@ server.on('connection', (socket: WebSocket) => {
             const publishCommand: PublishCommand = command as PublishCommand;
 
             for (const c of clients) {
+                console.log(`Client subscribed to [${c.subscribedChannels.join(',')}]`);
+
                 if (c.subscribedChannels.indexOf(publishCommand.channel) > -1) {
+                    console.log('Sending to subscriber');
                     c.socket.send(JSON.stringify(publishCommand));
                 }
             }
+
+            console.log(`Command: '${command.type}' '${publishCommand.channel}' [${client.subscribedChannels.join(',')}]`);
         }
 
         if (command instanceof SubscribeCommand) {
             const subscribeCommand: SubscribeCommand = command as SubscribeCommand;
 
             client.subscribe(subscribeCommand.channel);
+
+            console.log(`Command: '${command.type}' '${subscribeCommand.channel}' [${client.subscribedChannels.join(',')}]`);
         }
 
     });
@@ -43,6 +50,8 @@ server.on('connection', (socket: WebSocket) => {
         if (index > -1) {
             clients.splice(index, 1);
         }
+
+        console.log(`Closed client subscriber to [${client.subscribedChannels.join(',')}]`);
     });
 
 });

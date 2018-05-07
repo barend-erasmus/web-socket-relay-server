@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/barend-erasmus/web-socket-relay-server#readme",
   "dependencies": {
+    "highcharts": "^6.1.0",
     "uuid": "^3.2.1",
     "ws": "^5.1.0"
   },

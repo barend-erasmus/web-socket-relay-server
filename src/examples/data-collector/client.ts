@@ -4,7 +4,7 @@ const host: string = 'ws://events.openservices.co.za';
 
 const socket: WebSocket = new (window as any).WebSocket(host);
 
-socket.onopen = () => {
+socket.onopen = (event: Event) => {
     if (socket.readyState === 1) {
         const publishCommand: PublishCommand = new PublishCommand({
             appCodeName: navigator.appCodeName,
