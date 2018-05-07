@@ -11,7 +11,7 @@ export class CommandBuilder {
     public build(obj: any): Command {
         switch (obj.type) {
             case 'publish':
-                return new PublishCommand(obj.data, obj.channel);
+                return new PublishCommand(obj.channel, obj.data);
             case 'subscribe':
                 return new SubscribeCommand(obj.channel);
             default:

@@ -2,31 +2,9 @@ import * as Highcharts from 'highcharts';
 import { CommandBuilder } from '../../builders/command-builder';
 import { Command } from '../../commands/command';
 import { PublishCommand } from '../../commands/publish';
-import { SubscribeCommand } from '../../commands/subscribe';
+import { WebSocketClient } from '../../web-socket-client';
 
-function connectWebSocket(host: string): WebSocket {
-    console.log('Connecting...');
-
-    const socket: WebSocket = new (window as any).WebSocket(host);
-
-    socket.onclose = (closeEvent: CloseEvent) => {
-        console.log('Disconnected.');
-
-        if (closeEvent.code === 1000) {
-            return;
-        }
-
-        connectWebSocket(host);
-    };
-
-    socket.onmessage = (event: { data: any }) => onMessage(event);
-
-    socket.onopen = (openEvent: Event) => onOpen(openEvent, socket);
-
-    return socket;
-}
-
-function onMessage(event: { data: any }): void {
+function onMessage(event: { data: any }, webSocketClient: WebSocketClient): void {
     const commandBuilder: CommandBuilder = new CommandBuilder();
 
     const command: Command = commandBuilder.build(JSON.parse(event.data));
@@ -42,19 +20,19 @@ function onMessage(event: { data: any }): void {
     }
 }
 
-connectWebSocket('ws://events.openservices.co.za');
+const host: string = 'ws://events.openservices.co.za';
 
-function onOpen(openEvent: Event, socket: WebSocket): void {
-    if (socket.readyState === 1) {
-        console.log('Connected.');
+const webSocketClientInstance: WebSocketClient = new WebSocketClient(host, onMessage, null,  [
+    '431472d7-138b-4ba9-a750-e4c9d627ffaa',
+]);
 
-        const subscribeCommand: SubscribeCommand = new SubscribeCommand('431472d7-138b-4ba9-a750-e4c9d627ffaa');
+webSocketClientInstance.connect();
 
-        socket.send(JSON.stringify(subscribeCommand));
+function incrementPieChart(chart: any, name: string): void {
+    if (!name) {
+        return;
     }
-}
 
-function incrementPieChart(chart, name: string): void {
     let existingPoint = null;
 
     for (const point of chart.series[0].data) {

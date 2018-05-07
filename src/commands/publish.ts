@@ -2,7 +2,7 @@ import { Command } from './command';
 
 export class PublishCommand extends Command {
 
-    constructor(public data: any, public channel: string) {
+    constructor(public channel: string, public data: any) {
         super('publish');
     }
 
