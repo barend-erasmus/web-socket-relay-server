@@ -34,9 +34,11 @@ function onMessage(event: { data: any }): void {
     if (command instanceof PublishCommand) {
         const publishCommand: PublishCommand = command as PublishCommand;
 
+        incrementPieChart(hostnamesPieChart, publishCommand.data.hostname);
         incrementPieChart(languagesPieChart, publishCommand.data.language);
-        incrementPieChart(platformPieChart, publishCommand.data.platform);
-        incrementPieChart(userAgentPieChart, publishCommand.data.userAgent);
+        incrementPieChart(pathnamesPieChart, publishCommand.data.pathname);
+        incrementPieChart(platformsPieChart, publishCommand.data.platform);
+        incrementPieChart(userAgentsPieChart, publishCommand.data.userAgent);
     }
 }
 
@@ -72,6 +74,36 @@ function incrementPieChart(chart, name: string): void {
     }
 }
 
+const hostnamesPieChart = Highcharts.chart('hostnamesPieChart', {
+    chart: {
+        plotBackgroundColor: null,
+        plotBorderWidth: null,
+        plotShadow: false,
+        type: 'pie',
+    },
+    plotOptions: {
+        pie: {
+            allowPointSelect: true,
+            cursor: 'pointer',
+            dataLabels: {
+                enabled: false,
+            },
+            showInLegend: true,
+        },
+    },
+    series: [{
+        colorByPoint: true,
+        data: [],
+        name: 'Hostnames',
+    }],
+    title: {
+        text: 'Hostnames',
+    },
+    tooltip: {
+        pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>',
+    },
+});
+
 const languagesPieChart = Highcharts.chart('languagesPieChart', {
     chart: {
         plotBackgroundColor: null,
@@ -102,7 +134,37 @@ const languagesPieChart = Highcharts.chart('languagesPieChart', {
     },
 });
 
-const platformPieChart = Highcharts.chart('platformPieChart', {
+const pathnamesPieChart = Highcharts.chart('pathnamesPieChart', {
+    chart: {
+        plotBackgroundColor: null,
+        plotBorderWidth: null,
+        plotShadow: false,
+        type: 'pie',
+    },
+    plotOptions: {
+        pie: {
+            allowPointSelect: true,
+            cursor: 'pointer',
+            dataLabels: {
+                enabled: false,
+            },
+            showInLegend: true,
+        },
+    },
+    series: [{
+        colorByPoint: true,
+        data: [],
+        name: 'Pathnames',
+    }],
+    title: {
+        text: 'Pathnames',
+    },
+    tooltip: {
+        pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>',
+    },
+});
+
+const platformsPieChart = Highcharts.chart('platformsPieChart', {
     chart: {
         plotBackgroundColor: null,
         plotBorderWidth: null,
@@ -132,7 +194,7 @@ const platformPieChart = Highcharts.chart('platformPieChart', {
     },
 });
 
-const userAgentPieChart = Highcharts.chart('userAgentPieChart', {
+const userAgentsPieChart = Highcharts.chart('userAgentsPieChart', {
     chart: {
         plotBackgroundColor: null,
         plotBorderWidth: null,

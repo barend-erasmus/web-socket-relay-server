@@ -9,7 +9,9 @@ socket.onopen = (event: Event) => {
         const publishCommand: PublishCommand = new PublishCommand({
             appCodeName: navigator.appCodeName,
             appName: navigator.appName,
+            hostname: location.hostname,
             language: navigator.language,
+            pathname: location.pathname,
             platform: navigator.platform,
             product: navigator.product,
             productSub: navigator.productSub,
